@@ -1,0 +1,477 @@
+<title>Arada London &mdash; Command</title>
+<style>
+  :root{
+    --bg:#0a0b0d; --s1:#0e0f12; --s2:#131519; --s3:#1a1d22; --s4:#22262c;
+    --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12); --line3:rgba(255,255,255,.18);
+    --tx:#f3f4f6; --tx2:#9aa0ab; --tx3:#606671;
+    --gold:#e7bd7a; --gold2:#f2d29c; --gold-dim:rgba(231,189,122,.13); --gold-line:rgba(231,189,122,.32);
+    --ok:#5ccf8e; --ok-dim:rgba(92,207,142,.14);
+    --warn:#e7b15a; --warn-dim:rgba(231,177,90,.14);
+    --bad:#f0776b; --bad-dim:rgba(240,119,107,.14);
+    --info:#7ea6ff; --info-dim:rgba(126,166,255,.14);
+    --font:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);color:var(--tx);font-family:var(--font);font-size:14px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    background-image:radial-gradient(900px 500px at 78% -10%,rgba(231,189,122,.10),transparent 60%),radial-gradient(700px 600px at -5% 8%,rgba(126,166,255,.05),transparent 55%);
+    background-attachment:fixed;
+  }
+  h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.02em}
+  button{font-family:inherit;cursor:pointer;color:inherit}
+  ::selection{background:var(--gold-dim)}
+  :focus-visible{outline:1.5px solid var(--gold);outline-offset:2px;border-radius:6px}
+  .tnum{font-variant-numeric:tabular-nums}
+  .ic{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+  .app{display:grid;grid-template-columns:238px 1fr;min-height:100vh}
+
+  /* Sidebar */
+  .side{background:linear-gradient(180deg,var(--s1),var(--bg));border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .ws{padding:18px 16px 14px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line)}
+  .ws .mono{width:34px;height:34px;border-radius:9px;background:linear-gradient(145deg,var(--gold2),var(--gold));color:#22160a;display:grid;place-items:center;font-weight:700;font-size:16px;box-shadow:0 2px 12px rgba(231,189,122,.3),inset 0 1px 0 rgba(255,255,255,.4)}
+  .ws b{font-size:14.5px;letter-spacing:-.01em;display:block;line-height:1.15}
+  .ws span{font-size:11px;color:var(--tx3)}
+  .ws .cx{margin-left:auto;color:var(--tx3)}
+  .nav{padding:12px 10px;flex:1;display:flex;flex-direction:column;gap:2px}
+  .nav .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--tx3);padding:14px 12px 6px;font-weight:600}
+  .nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;color:var(--tx2);font-size:13.5px;font-weight:500;position:relative;transition:.15s;text-decoration:none}
+  .nav a:hover{background:var(--s2);color:var(--tx)}
+  .nav a.on{background:var(--s3);color:var(--tx)}
+  .nav a.on::before{content:"";position:absolute;left:-10px;top:9px;bottom:9px;width:3px;border-radius:3px;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+  .nav a .ct{margin-left:auto;font-size:11.5px;color:var(--tx3);font-variant-numeric:tabular-nums}
+  .nav a.on .ct{color:var(--gold)}
+  .side .srv{margin:8px 12px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--s1);font-size:11.5px;color:var(--tx2);display:flex;gap:9px;align-items:flex-start}
+  .side .srv .ic{width:15px;height:15px;color:var(--ok);margin-top:1px}
+  .side .me{padding:11px 14px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .side .me .av{width:30px;height:30px;border-radius:50%;background:var(--s4);display:grid;place-items:center;font-size:11.5px;font-weight:600;position:relative}
+  .side .me .av::after{content:"";position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:50%;background:var(--ok);border:2px solid var(--s1)}
+  .side .me b{font-size:12.5px}.side .me span{font-size:11px;color:var(--tx3)}
+
+  /* Main */
+  .main{min-width:0;display:flex;flex-direction:column}
+  .top{position:sticky;top:0;z-index:8;padding:13px 30px;display:flex;align-items:center;gap:14px;
+    background:rgba(10,11,13,.72);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid var(--line)}
+  .crumb{font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:8px}
+  .crumb b{color:var(--tx);font-weight:600}
+  .crumb .sep{color:var(--tx3)}
+  .kbar{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--line2);border-radius:10px;padding:8px 11px;color:var(--tx3);font-size:13px;width:260px;cursor:text;transition:.15s}
+  .kbar:hover{border-color:var(--line3)}
+  .kbar input{flex:1;background:none;border:0;color:var(--tx);font-size:13px;outline:none;font-family:inherit}
+  .kbar .kk{font-size:10.5px;border:1px solid var(--line2);border-radius:5px;padding:1px 5px;color:var(--tx3)}
+  .chip{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-line);padding:4px 9px;border-radius:20px}
+
+  .wrap{padding:28px 30px 70px;max-width:1120px;width:100%}
+  .view{display:none}.view.on{display:block;animation:in .3s cubic-bezier(.2,.7,.3,1)}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.view.on{animation:none}}
+
+  .ey{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--gold);font-weight:600}
+  .h-title{font-size:26px;font-weight:600;letter-spacing:-.025em;margin-top:6px}
+  .h-sub{color:var(--tx2);margin-top:6px;max-width:64ch}
+
+  .card{background:var(--s2);border:1px solid var(--line);border-radius:var(--r);position:relative}
+  .card.g{background:linear-gradient(180deg,var(--s2),var(--s1))}
+  .pad{padding:20px}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
+  .main-2{grid-template-columns:1.5fr 1fr}
+  @media(max-width:880px){.g3,.g2,.main-2{grid-template-columns:1fr}.app{grid-template-columns:1fr}.side{display:none}}
+
+  /* Hero */
+  .hero{padding:26px;border:1px solid var(--line);border-radius:20px;background:
+    radial-gradient(600px 220px at 88% 0%,rgba(231,189,122,.14),transparent 62%),
+    linear-gradient(180deg,var(--s2),var(--s1));overflow:hidden;position:relative}
+  .hero .eyrow{display:flex;align-items:center;gap:12px}
+  .hero .big{font-size:52px;font-weight:600;letter-spacing:-.04em;margin:14px 0 2px;line-height:1}
+  .hero .big em{font-style:normal;color:var(--tx3);font-size:30px}
+  .hero .cap{color:var(--tx2);font-size:14px}
+  .rail{height:8px;border-radius:6px;background:var(--s4);margin-top:20px;position:relative;overflow:hidden}
+  .rail i{position:absolute;inset:0;width:34%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 0 16px rgba(231,189,122,.5)}
+  .rail-l{display:flex;justify-content:space-between;font-size:11.5px;color:var(--tx3);margin-top:9px}
+
+  .stat{padding:17px 18px}
+  .stat .l{font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:7px}
+  .stat .l .ic{width:14px;height:14px;color:var(--tx3)}
+  .stat .n{font-size:27px;font-weight:600;letter-spacing:-.03em;margin-top:9px;line-height:1;display:flex;align-items:baseline;gap:8px}
+  .spark{margin-top:12px;height:26px;width:100%;overflow:visible}
+  .delta{font-size:11.5px;font-weight:600;padding:1px 6px;border-radius:6px}
+  .delta.up{color:var(--ok);background:var(--ok-dim)}.delta.dn{color:var(--bad);background:var(--bad-dim)}
+
+  .ch{display:flex;align-items:center;gap:9px;padding:16px 18px 4px}
+  .ch .ic{width:16px;height:16px;color:var(--gold)}
+  .ch .t{font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+  .ch .r{margin-left:auto;font-size:11.5px;color:var(--tx3)}
+  .cb{padding:6px 18px 16px}
+
+  .li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);align-items:center}
+  .li:last-child{border-bottom:0}
+  .li .tk{width:19px;height:19px;border:1.5px solid var(--line3);border-radius:6px;flex:none;display:grid;place-items:center;color:transparent;transition:.15s;cursor:pointer}
+  .li .tk .ic{width:12px;height:12px;stroke-width:2.4}
+  .li.done .tk{background:var(--ok);border-color:var(--ok);color:#08130c}
+  .li.done .m{color:var(--tx3);text-decoration:line-through}
+  .li .bit{flex:1;min-width:0}
+  .li .m{font-size:13.5px}
+  .li .s{font-size:11.5px;color:var(--tx3);margin-top:2px}
+  .li .tm{font-size:12.5px;font-weight:600;color:var(--tx);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .li .rt{font-size:11px;color:var(--tx3);white-space:nowrap}
+
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:7px;white-space:nowrap;border:1px solid transparent}
+  .tag.gold{color:var(--gold);background:var(--gold-dim);border-color:var(--gold-line)}
+  .tag.ok{color:var(--ok);background:var(--ok-dim)}
+  .tag.warn{color:var(--warn);background:var(--warn-dim)}
+  .tag.bad{color:var(--bad);background:var(--bad-dim)}
+  .tag.info{color:var(--info);background:var(--info-dim)}
+  .tag.mute{color:var(--tx2);background:var(--s3);border-color:var(--line2)}
+  .tag .ic{width:12px;height:12px}
+  .dot{width:6px;height:6px;border-radius:50%}
+  .glow{box-shadow:0 0 8px currentColor}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .scroll{overflow-x:auto}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);font-weight:600;padding:13px 18px;border-bottom:1px solid var(--line)}
+  td{padding:14px 18px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:0}
+  tbody tr.click{cursor:pointer;transition:.12s}
+  tbody tr.click:hover{background:var(--s3)}
+  table{min-width:460px}
+
+  .btn{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#231705;border:0;padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 14px rgba(231,189,122,.28),inset 0 1px 0 rgba(255,255,255,.35);transition:.15s}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(231,189,122,.4),inset 0 1px 0 rgba(255,255,255,.35)}
+  .btn .ic{width:15px;height:15px;stroke-width:2.2}
+  .btn.gh{background:var(--s3);color:var(--tx);border:1px solid var(--line2);box-shadow:none}
+  .btn.gh:hover{background:var(--s4);transform:none}
+  .btn.sm{padding:7px 12px;font-size:12.5px}
+  .back{background:none;border:0;color:var(--tx2);font-size:13.5px;display:inline-flex;align-items:center;gap:6px;padding:6px 0;margin-bottom:8px}
+  .back:hover{color:var(--gold)}
+
+  /* project detail */
+  .pinfo{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .pinfo .h{flex:1;min-width:220px}
+  .pinfo h2{font-size:23px;letter-spacing:-.025em}
+  .pinfo .loc{color:var(--tx2);font-size:13.5px;margin-top:5px}
+  .kv{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:18px 0}
+  .kv .c{background:var(--s2);padding:15px 16px}
+  .kv .c .l{font-size:11px;color:var(--tx3)}
+  .kv .c .v{font-size:19px;font-weight:600;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums}
+  @media(max-width:620px){.kv{grid-template-columns:1fr 1fr}}
+
+  .doc{display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .doc:last-child{border-bottom:0}
+  .doc .fi{width:34px;height:34px;border-radius:9px;background:var(--s3);border:1px solid var(--line);display:grid;place-items:center;color:var(--gold);flex:none}
+  .doc .fi .ic{width:16px;height:16px}
+  .doc .nm{font-size:13.5px}.doc .mt{font-size:11.5px;color:var(--tx3);margin-top:1px}
+  .doc .dl{margin-left:auto;color:var(--gold);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .doc .dl .ic{width:13px;height:13px}
+
+  .flow{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .flow .st{flex:1;min-width:118px;border:1px solid var(--line);border-radius:12px;padding:14px 12px;background:var(--s1);opacity:.42;transition:.35s;text-align:center}
+  .flow .st.on{opacity:1;border-color:var(--gold-line);background:var(--gold-dim);box-shadow:0 0 0 1px var(--gold-line)}
+  .flow .st .fic{width:30px;height:30px;border-radius:8px;background:var(--s3);display:grid;place-items:center;margin:0 auto 8px;color:var(--gold)}
+  .flow .st.on .fic{background:var(--gold);color:#231705}
+  .flow .st .t{font-size:12px;font-weight:600}
+  .flow .ar{align-self:center;color:var(--tx3)}
+  .prog{height:8px;border-radius:6px;background:var(--s4);overflow:hidden;margin-top:10px}
+  .prog i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:6px;box-shadow:0 0 12px rgba(231,189,122,.4)}
+
+  .note{border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:12.5px;color:var(--tx2);display:flex;gap:11px;background:var(--s1)}
+  .note .ic{width:16px;height:16px;color:var(--gold);margin-top:1px;flex:none}
+  .empty{text-align:center;color:var(--tx3);padding:34px;font-size:13.5px}
+  .foot{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--tx3);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .foot b{color:var(--tx2)}
+  .avstack{display:flex}
+  .avstack span{width:24px;height:24px;border-radius:50%;background:var(--s4);border:1.5px solid var(--s2);display:grid;place-items:center;font-size:10px;font-weight:600;margin-left:-7px;color:var(--tx2)}
+  .avstack span:first-child{margin-left:0}
+</style>
+
+<!-- icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 13l9 5 9-5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1-2-1Z"/><path d="M9 8h6M9 12h6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 4v5h-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="i-check2" viewBox="0 0 24 24"><path d="M22 11.5V12a10 10 0 1 1-5.9-9.1"/><path d="m9 11 3 3L22 4"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3Z"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v4h4"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+  <symbol id="i-cx" viewBox="0 0 24 24"><path d="m8 9 4 3 4-3"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <aside class="side">
+    <div class="ws">
+      <div class="mono">A</div>
+      <div><b>Arada London</b><span>Development &middot; Command</span></div>
+      <svg class="ic cx"><use href="#i-cx"/></svg>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="lbl">Workspace</div>
+      <a data-v="dash" class="on"><svg class="ic"><use href="#i-grid"/></svg> Command<span class="ct"></span></a>
+      <a data-v="projects"><svg class="ic"><use href="#i-layers"/></svg> Projects<span class="ct">6</span></a>
+      <a data-v="deadlines"><svg class="ic"><use href="#i-clock"/></svg> Deadlines<span class="ct">8</span></a>
+      <div class="lbl">Operations</div>
+      <a data-v="invoices"><svg class="ic"><use href="#i-receipt"/></svg> Invoices<span class="ct">7</span></a>
+      <a data-v="docs"><svg class="ic"><use href="#i-folder"/></svg> Documents<span class="ct"></span></a>
+    </nav>
+    <div class="srv"><svg class="ic"><use href="#i-shield"/></svg><div>Private server &middot; <b style="color:var(--tx)">your data stays in the building</b></div></div>
+    <div class="me"><div class="av">SR</div><div><b>Scott Rose</b><br><span>Planning &middot; London HQ</span></div></div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div class="crumb" id="crumb"><b>Command</b></div>
+      <div class="kbar" id="kbar"><svg class="ic" style="width:15px;height:15px;color:var(--tx3)"><use href="#i-search"/></svg><input id="search" placeholder="Search or jump to&hellip;" aria-label="Search"><span class="kk">&#8984;K</span></div>
+      <span class="chip">Live demo</span>
+    </div>
+
+    <div class="wrap">
+
+      <!-- COMMAND -->
+      <section class="view on" id="v-dash">
+        <div class="hero">
+          <div class="eyrow"><span class="ey">Arada's three-year mandate</span><span class="tag gold"><span class="dot glow" style="background:var(--gold)"></span>On plan &middot; Year 1</span></div>
+          <div class="big tnum">10,240 <em>/ 30,000 homes</em></div>
+          <div class="cap">Tripling the London pipeline by 2028 &mdash; tracked live, not buried in a spreadsheet.</div>
+          <div class="rail"><i></i></div>
+          <div class="rail-l"><span>Acquisition &middot; Sep 2025 &middot; 10,000</span><span>34% delivered</span><span>Target &middot; 2028</span></div>
+        </div>
+
+        <div class="grid g3" style="margin-top:16px">
+          <div class="card stat">
+            <div class="l"><svg class="ic"><use href="#i-layers"/></svg> Live schemes</div>
+            <div class="n tnum">6</div>
+            <svg class="spark" viewBox="0 0 120 26" preserveAspectRatio="none" data-spark="3,4,4,5,5,6"></svg>
+          </div>
+          <div class="card stat">
+            <div class="l"><svg class="ic"><use href="#i-trend"/></svg> Spend logged &middot; June</div>
+            <div class="n tnum">&pound;2.41m <span class="delta up">auto</span></div>
+            <svg class="spark" viewBox="0 0 120 26" preserveAspectRatio="none" data-spark="8,12,10,16,14,22"></svg>
+          </div>
+          <div class="card stat">
+            <div class="l"><svg class="ic"><use href="#i-clock"/></svg> Deadlines this week</div>
+            <div class="n tnum">3 <span class="delta dn">1 at risk</span></div>
+            <svg class="spark" viewBox="0 0 120 26" preserveAspectRatio="none" data-spark="2,3,2,4,3,3" data-c="bad"></svg>
+          </div>
+        </div>
+
+        <div class="grid g3" style="margin-top:16px">
+          <div class="card"><div class="ch"><svg class="ic"><use href="#i-cal"/></svg><span class="t">Today's meetings</span><span class="r">Outlook</span></div><div class="cb" id="c-meet"></div></div>
+          <div class="card"><div class="ch"><svg class="ic"><use href="#i-refresh"/></svg><span class="t">Follow-ups due</span></div><div class="cb" id="c-follow"></div></div>
+          <div class="card"><div class="ch"><svg class="ic"><use href="#i-check2"/></svg><span class="t">Tasks &amp; reminders</span></div><div class="cb" id="c-tasks"></div></div>
+        </div>
+
+        <div class="card g" style="margin-top:16px">
+          <div class="ch"><svg class="ic"><use href="#i-clock"/></svg><span class="t">Key deadlines</span><span class="r">read automatically from Outlook &amp; Teams</span></div>
+          <div class="cb" id="c-dead"></div>
+        </div>
+      </section>
+
+      <!-- PROJECTS -->
+      <section class="view" id="v-projects">
+        <div class="ey">Portfolio</div><div class="h-title">Projects</div>
+        <div class="h-sub">Six live schemes, one view. Open any project for its dates, tasks and documents.</div>
+        <div class="card scroll" style="margin-top:18px">
+          <table><thead><tr><th>Project</th><th>Borough</th><th>Stage</th><th>Team</th><th>Next date</th><th>Health</th></tr></thead><tbody id="projrows"></tbody></table>
+        </div>
+      </section>
+      <section class="view" id="v-proj"></section>
+
+      <!-- DEADLINES -->
+      <section class="view" id="v-deadlines">
+        <div class="ey">Read automatically &middot; never typed in</div><div class="h-title">Deadlines</div>
+        <div class="h-sub">Pulled straight from your Outlook mail, calendar and Teams. The model follows the email chains and extracts every date itself &mdash; so nothing is missed because someone forgot to log it.</div>
+        <div class="note" style="margin-top:16px"><svg class="ic"><use href="#i-mail"/></svg><div><b style="color:var(--tx)">No manual entry.</b> Connected to Outlook &amp; Teams &mdash; when a consultant or the bank mentions a date in a thread, it appears here on its own, linked back to the source message.</div></div>
+        <div class="card scroll" style="margin-top:16px">
+          <table><thead><tr><th>Date</th><th>Project</th><th>Milestone</th><th>Type</th><th>Picked up from</th><th>Status</th></tr></thead><tbody id="deadrows"></tbody></table>
+        </div>
+      </section>
+
+      <!-- INVOICES -->
+      <section class="view" id="v-invoices">
+        <div class="ey">Automation</div><div class="h-title">Invoices &amp; budget</div>
+        <div class="h-sub">The job done by hand today &mdash; key it into Excel, save the PDF, sign it &mdash; handled the moment it lands.</div>
+        <div class="grid main-2" style="margin-top:18px">
+          <div class="card pad">
+            <div style="font-weight:600;font-size:15px;letter-spacing:-.01em">Watch one arrive</div>
+            <div style="font-size:13px;color:var(--tx2);margin-top:4px">From inbox to filed, reconciled and ready to sign &mdash; automatically.</div>
+            <div class="flow" id="flow">
+              <div class="st"><div class="fic"><svg class="ic"><use href="#i-mail"/></svg></div><div class="t">Invoice arrives</div></div>
+              <svg class="ic ar"><use href="#i-arrow"/></svg>
+              <div class="st"><div class="fic"><svg class="ic"><use href="#i-search"/></svg></div><div class="t">Read &amp; match</div></div>
+              <svg class="ic ar"><use href="#i-arrow"/></svg>
+              <div class="st"><div class="fic"><svg class="ic"><use href="#i-trend"/></svg></div><div class="t">Log to tracker</div></div>
+              <svg class="ic ar"><use href="#i-arrow"/></svg>
+              <div class="st"><div class="fic"><svg class="ic"><use href="#i-check"/></svg></div><div class="t">Filed &amp; ready</div></div>
+            </div>
+            <button class="btn" style="margin-top:16px" id="runinv"><svg class="ic"><use href="#i-bolt"/></svg> Simulate an invoice arriving</button>
+            <div id="invout"></div>
+          </div>
+          <div class="card pad">
+            <div style="font-weight:600;font-size:15px">Peckham &middot; consultant budget</div>
+            <div style="font-size:13px;color:var(--tx2);margin:3px 0 14px">&pound;737,600 spent of &pound;1.05m</div>
+            <div class="prog"><i style="width:70%"></i></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx3);margin-top:8px"><span>70% committed</span><span>&pound;312,400 left</span></div>
+            <div class="note" style="margin-top:16px"><svg class="ic"><use href="#i-bolt"/></svg><div><b style="color:var(--tx)">One to check:</b> Lumen Reports billed &pound;4,800 over the agreed fee &mdash; held for approval, not auto-paid.</div></div>
+          </div>
+        </div>
+        <div class="card scroll" style="margin-top:16px">
+          <div class="ch"><svg class="ic"><use href="#i-receipt"/></svg><span class="t">June invoices</span><span class="r">logged automatically</span></div>
+          <table><thead><tr><th>Consultant</th><th>Project</th><th>Date</th><th style="text-align:right">Amount</th><th>Check</th></tr></thead><tbody id="invrows"></tbody></table>
+        </div>
+      </section>
+
+      <!-- DOCUMENTS -->
+      <section class="view" id="v-docs">
+        <div class="ey">Everything, found instantly</div><div class="h-title">Documents</div>
+        <div class="h-sub">Ask for any file in plain English instead of digging through SharePoint folders.</div>
+        <div class="card pad" style="margin-top:18px">
+          <div class="kbar" style="width:100%;margin:0" id="docbar"><svg class="ic" style="width:15px;height:15px;color:var(--tx3)"><use href="#i-search"/></svg><input id="docsearch" placeholder="e.g. Peckham ecology report &middot; Wembley invoice &middot; planning" aria-label="Search documents"></div>
+          <div style="margin-top:16px" id="docresults"></div>
+        </div>
+        <div class="note" style="margin-top:16px"><svg class="ic"><use href="#i-folder"/></svg><div>Searches across <b style="color:var(--tx)">SharePoint, Outlook and Excel</b> at once &mdash; the three places your data lives today. Try <b style="color:var(--tx)">Peckham</b>, <b style="color:var(--tx)">invoice</b> or <b style="color:var(--tx)">planning</b>.</div></div>
+      </section>
+
+      <div class="foot">
+        <span class="chip" style="color:var(--tx2);background:var(--s3);border-color:var(--line2)">Phase 1</span>
+        <b>This is the CRM.</b> Phase 2, once it's running: an AI planning assistant that drafts your documents. One step at a time.
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  var meetings=[["10:00","Pre-app call &mdash; Southwark","with planning officer &middot; Peckham"],["12:30","Lunch &mdash; Simon","catch-up"],["14:30","Design review &mdash; Wembley","Block C balconies"],["16:00","Ecology call","Peckham tender"]];
+  var follows=[["Chase daylight report &mdash; Lumen","a week overdue","Peckham"],["Reply to planning officer","draft ready","Peckham"],["Confirm ecology fee &mdash; Arbor","quote in","Peckham"],["Covenant figures w/ investment","before test","Wembley"]];
+  var tasks=[["Update the invoice tracker","from John","today"],["Committee note &mdash; Orchard Wharf","from John","today"],["Lock Block B massing","before Fri drawdown","urgent"],["NMA covering letter for check","Wembley","today"],["Book viability re-appraisal","N. Finchley","this wk"],["Approve ecology shortlist","Peckham","today"]];
+  var deadlines=[["6 Jul","Peckham","Pre-app design freeze","Design","bad","Slipping","Email chain"],["11 Jul","Peckham","Equity drawdown #2 condition","Equity","warn","Tight","Funder email"],["18 Jul","Fulton & Fifth","Senior debt covenant test","Bank","warn","Tight","Facility agreement"],["21 Jul","Orchard Wharf","S106 sign-off","Planning","ok","On track","Outlook"],["29 Jul","North Finchley","Viability re-appraisal","Design","ok","On track","Teams"],["2 Aug","Peckham","Planning submission","Planning","mute","Upcoming","Outlook calendar"],["8 Aug","Fulton & Fifth","Brent tall-buildings consultation","Planning","mute","Upcoming","Planning portal"],["15 Aug","Orchard Wharf","Discharge conditions","Planning","mute","Upcoming","Email chain"]];
+  var projects={
+    peckham:{n:"Peckham",loc:"Rye Lane, Southwark &middot; student + affordable homes",bor:"Southwark",stage:"Pre-application",next:"6 Jul",team:["SR","JM","AB"],health:["bad","At risk"],
+      kv:[["Homes","428"],["Affordable","35%"],["Stage","Pre-app"],["Next","6 Jul"]],
+      dates:[["6 Jul","Pre-app design freeze","bad"],["11 Jul","Equity drawdown #2","warn"],["2 Aug","Planning submission","mute"]],
+      tk:[["Lock Block B massing","urgent"],["Reply to planning officer","today"],["Approve ecology shortlist","today"]],
+      docs:[["Ecology impact assessment","Arbor Ltd &middot; PDF"],["Pre-app meeting notes","Word &middot; May 2026"],["Viability appraisal","Excel"]]},
+    wembley:{n:"Fulton & Fifth",loc:"Wembley, Brent &middot; 876 homes &middot; under construction",bor:"Brent",stage:"Under construction",next:"18 Jul",team:["JM","SR"],health:["warn","Watch"],
+      kv:[["Homes","876"],["Reserved","61%"],["Stage","Building"],["Next","18 Jul"]],
+      dates:[["18 Jul","Senior debt covenant test","warn"],["Aug","Block C NMA &mdash; balconies","mute"]],
+      tk:[["Send NMA covering letter","today"],["Check covenant figures","this wk"]],
+      docs:[["NMA covering letter (draft)","Word"],["Sales & reservations","Excel"],["Decision notice 21/2043/FUL","PDF"]]},
+    orchard:{n:"Orchard Wharf",loc:"Leamouth Road, Tower Hamlets &middot; residential",bor:"Tower Hamlets",stage:"Post-consent",next:"21 Jul",team:["AB","SR"],health:["ok","On track"],
+      kv:[["Homes","327"],["Affordable","35%"],["Stage","Post-consent"],["Next","21 Jul"]],
+      dates:[["21 Jul","S106 sign-off","ok"],["15 Aug","Discharge conditions","mute"]],
+      tk:[["Prep committee note","today"]],docs:[["S106 draft","Legal &middot; Word"],["Committee report","PDF"]]},
+    finchley:{n:"North Finchley",loc:"High Road, Barnet &middot; residential",bor:"Barnet",stage:"Feasibility",next:"29 Jul",team:["SR"],health:["ok","On track"],
+      kv:[["Homes est","214"],["Stage","Feasibility"],["Type","Resi"],["Next","29 Jul"]],
+      dates:[["29 Jul","Viability re-appraisal","mute"]],tk:[["Book re-appraisal","this wk"]],docs:[["Feasibility appraisal","Excel"],["Site plan","PDF"]]},
+    fulton:{n:"Fulton Road (Ph.1)",loc:"Wembley, Brent &middot; built & operating",bor:"Brent",stage:"Asset management",next:"&mdash;",team:["JM"],health:["ok","Operating"],
+      kv:[["Homes","412"],["Remaining","200"],["Stage","Operating"],["Occupancy","74%"]],
+      dates:[["Ongoing","Lettings & asset mgmt","mute"]],tk:[["Monthly occupancy report","this wk"]],docs:[["Lettings tracker","Excel"],["Asset mgmt plan","Word"]]},
+    leisure:{n:"Leisure Park scheme",loc:"London &middot; residential-led &middot; under construction",bor:"&mdash;",stage:"Under construction",next:"&mdash;",team:["JM","AB"],health:["warn","Watch"],
+      kv:[["Homes","540"],["Stage","Building"],["Type","Resi-led"],["Next","&mdash;"]],
+      dates:[["TBC","Next milestone being set","mute"]],tk:[["Confirm programme dates","this wk"]],docs:[["Construction programme","PDF"]]}
+  };
+  var invoices=[["Arbor Ltd","Ecology","Peckham","24 Jun","&pound;12,400","ok"],["MoveUrban","Transport","Peckham","22 Jun","&pound;9,800","ok"],["Meinhardt","Structures","Fulton & Fifth","20 Jun","&pound;41,250","ok"],["Lumen Reports","Daylight","Peckham","19 Jun","&pound;18,300","over"],["GIA","Rights of light","Orchard Wharf","17 Jun","&pound;7,600","ok"]];
+  var docs=[["Ecology impact assessment &mdash; Peckham","i-file","Arbor Ltd &middot; PDF &middot; SharePoint"],["Peckham pre-app meeting notes","i-file","Word &middot; May 2026"],["Peckham viability appraisal","i-trend","Excel"],["NMA covering letter &mdash; Wembley","i-file","Word &middot; draft"],["Fulton & Fifth sales tracker","i-trend","Excel"],["Invoice &mdash; Lumen Reports","i-receipt","PDF &middot; &pound;18,300"],["Invoice &mdash; Arbor Ltd","i-receipt","PDF &middot; &pound;12,400"],["Orchard Wharf committee report","i-file","PDF"],["North Finchley feasibility","i-trend","Excel"],["Southwark planning officer email","i-mail","Outlook &middot; re daylight"]];
+
+  function el(h){var t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstElementChild;}
+  function svg(id,cls){return '<svg class="ic '+(cls||'')+'"><use href="#'+id+'"/></svg>';}
+  function health(h){return '<span class="tag '+h[0]+'"><span class="dot glow" style="background:currentColor"></span>'+h[1]+'</span>';}
+  function avs(t){return '<div class="avstack">'+t.map(function(a){return '<span>'+a+'</span>';}).join('')+'</div>';}
+
+  // sparklines
+  document.querySelectorAll('[data-spark]').forEach(function(s){
+    var v=s.getAttribute('data-spark').split(',').map(Number),max=Math.max.apply(0,v),min=Math.min.apply(0,v);
+    var col=s.getAttribute('data-c')==='bad'?'var(--bad)':'var(--gold)';
+    var pts=v.map(function(y,i){return (i/(v.length-1)*118+1).toFixed(1)+','+(24-((y-min)/(max-min||1))*20-2).toFixed(1);});
+    var lx=pts[pts.length-1].split(',');
+    s.innerHTML='<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+lx[0]+'" cy="'+lx[1]+'" r="2.4" fill="'+col+'"/>';
+  });
+
+  meetings.forEach(function(m){document.getElementById('c-meet').appendChild(el('<div class="li"><div class="tm">'+m[0]+'</div><div class="bit"><div class="m">'+m[1]+'</div><div class="s">'+m[2]+'</div></div></div>'));});
+  follows.forEach(function(f){addTask('c-follow',f[0],f[1],'<span class="rt">'+f[2]+'</span>');});
+  tasks.forEach(function(t){addTask('c-tasks',t[0],t[1],t[2]==='urgent'?'<span class="tag bad">urgent</span>':'<span class="rt">'+t[2]+'</span>');});
+  function addTask(into,m,s,right){
+    var r=el('<div class="li"><div class="tk" role="checkbox" tabindex="0" aria-checked="false">'+svg('i-check')+'</div><div class="bit"><div class="m">'+m+'</div><div class="s">'+s+'</div></div>'+(right||'')+'</div>');
+    var tk=r.querySelector('.tk');
+    function tog(){r.classList.toggle('done');tk.setAttribute('aria-checked',r.classList.contains('done'));}
+    tk.addEventListener('click',tog);tk.addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();tog();}});
+    document.getElementById(into).appendChild(r);
+  }
+  deadlines.slice(0,4).forEach(function(d){document.getElementById('c-dead').appendChild(el('<div class="li"><div class="tm">'+d[0]+'</div><div class="bit"><div class="m">'+d[2]+'</div><div class="s">'+d[1]+' &middot; '+d[3]+'</div></div><span class="tag '+d[4]+'">'+d[5]+'</span></div>'));});
+  function srcTag(s){var live=(s==='Email chain'||s==='Teams'||s==='Funder email');return '<span class="tag '+(live?'gold':'mute')+'">'+svg(s==='Teams'?'i-check2':'i-mail')+s+'</span>';}
+  deadlines.forEach(function(d){document.getElementById('deadrows').appendChild(el('<tr><td class="tnum" style="font-weight:600;color:var(--tx)">'+d[0]+'</td><td>'+d[1]+'</td><td>'+d[2]+'</td><td><span class="tag mute">'+d[3]+'</span></td><td>'+srcTag(d[6])+'</td><td><span class="tag '+d[4]+'">'+d[5]+'</span></td></tr>'));});
+
+  var order=['peckham','wembley','orchard','finchley','fulton','leisure'];
+  order.forEach(function(id){var p=projects[id];
+    document.getElementById('projrows').appendChild(el('<tr class="click" data-proj="'+id+'"><td style="font-weight:600;color:var(--tx)">'+p.n+'</td><td>'+p.bor+'</td><td>'+p.stage+'</td><td>'+avs(p.team)+'</td><td class="tnum">'+p.next+'</td><td>'+health(p.health)+'</td></tr>'));
+  });
+
+  function openProj(id){var p=projects[id];if(!p)return go('projects');
+    var kv=p.kv.map(function(k){return '<div class="c"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'</div></div>';}).join('');
+    var dates=p.dates.map(function(d){return '<div class="li"><div class="tm">'+d[0]+'</div><div class="bit"><div class="m">'+d[1]+'</div></div><span class="dot glow '+d[2]+'" style="width:8px;height:8px;color:var(--'+(d[2]==='mute'?'tx3':d[2])+');background:currentColor"></span></div>';}).join('');
+    var tks=p.tk.map(function(t){return '<div class="li"><div class="tk">'+svg('i-check')+'</div><div class="bit"><div class="m">'+t[0]+'</div></div>'+(t[1]==='urgent'?'<span class="tag bad">urgent</span>':'<span class="rt">'+t[1]+'</span>')+'</div>';}).join('');
+    var dcs=p.docs.map(function(d){return '<div class="doc"><div class="fi">'+svg('i-file')+'</div><div><div class="nm">'+d[0]+'</div><div class="mt">'+d[1]+'</div></div><span class="dl">Open '+svg('i-arrow')+'</span></div>';}).join('');
+    document.getElementById('v-proj').innerHTML=
+      '<button class="back">'+svg('i-chev')+' All projects</button>'+
+      '<div class="pinfo"><div class="h"><h2>'+p.n+'</h2><div class="loc">'+p.loc+'</div></div>'+health(p.health)+'</div>'+
+      '<div class="kv">'+kv+'</div>'+
+      '<div class="grid g2">'+
+        '<div class="card"><div class="ch">'+svg('i-clock')+'<span class="t">Key dates</span></div><div class="cb">'+dates+'</div></div>'+
+        '<div class="card"><div class="ch">'+svg('i-check2')+'<span class="t">Tasks</span></div><div class="cb">'+tks+'</div></div>'+
+      '</div>'+
+      '<div class="card" style="margin-top:16px"><div class="ch">'+svg('i-folder')+'<span class="t">Documents</span></div><div class="cb">'+dcs+'</div></div>';
+    document.querySelector('#v-proj .back').addEventListener('click',function(){go('projects');});
+    document.querySelectorAll('#v-proj .tk').forEach(function(tk){tk.addEventListener('click',function(){tk.parentElement.classList.toggle('done');});});
+    show('proj');setNav('projects');setTop('<b>Projects</b> <span class="sep">/</span> '+p.n);
+  }
+
+  invoices.forEach(function(v){var chk=v[5]==='over'?'<span class="tag warn">+&pound;4,800 over</span>':'<span class="tag ok">matches fee</span>';
+    document.getElementById('invrows').appendChild(el('<tr><td style="font-weight:600;color:var(--tx)">'+v[0]+'</td><td>'+v[2]+'</td><td>'+v[3]+'</td><td class="tnum" style="text-align:right">'+v[4]+'</td><td>'+chk+'</td></tr>'));});
+  var running=false;
+  document.getElementById('runinv').addEventListener('click',function(){
+    if(running)return;running=true;var steps=document.querySelectorAll('#flow .st');steps.forEach(function(s){s.classList.remove('on');});
+    document.getElementById('invout').innerHTML='';var i=0;
+    var iv=setInterval(function(){
+      if(i<steps.length){steps[i].classList.add('on');i++;}
+      else{clearInterval(iv);document.getElementById('invout').innerHTML='<div class="note" style="margin-top:16px">'+svg('i-check2')+'<div><b style="color:var(--tx)">Done in ~2 seconds.</b> Arbor Ltd &middot; &pound;12,400 read, matched to Peckham &middot; ecology, added to June\'s tracker, checked against budget and filed &mdash; ready to sign. No typing, no chasing.</div></div>';running=false;}
+    },460);
+  });
+
+  function renderDocs(q){q=(q||'').toLowerCase();var box=document.getElementById('docresults');box.innerHTML='';
+    var list=docs.filter(function(d){return !q||d[0].toLowerCase().indexOf(q)>-1||d[2].toLowerCase().indexOf(q)>-1;});
+    if(!list.length){box.innerHTML='<div class="empty">No documents match "'+q+'".</div>';return;}
+    list.forEach(function(d){box.appendChild(el('<div class="doc"><div class="fi">'+svg(d[1])+'</div><div><div class="nm">'+d[0]+'</div><div class="mt">'+d[2]+'</div></div><span class="dl">Open '+svg('i-dl')+'</span></div>'));});
+  }
+  renderDocs('');document.getElementById('docsearch').addEventListener('input',function(e){renderDocs(e.target.value);});
+
+  var titles={dash:'Command',projects:'Projects',deadlines:'Deadlines',invoices:'Invoices',docs:'Documents'};
+  function setTop(h){document.getElementById('crumb').innerHTML=h;}
+  function setNav(v){document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('on',a.dataset.v===v);});}
+  function show(v){document.querySelectorAll('.view').forEach(function(x){x.classList.remove('on');});document.getElementById('v-'+v).classList.add('on');window.scrollTo({top:0,behavior:'auto'});}
+  window.go=function(v){show(v);setNav(v);setTop('<b>'+(titles[v]||'')+'</b>');};
+  document.querySelectorAll('#nav a').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();go(a.dataset.v);});});
+  document.addEventListener('click',function(e){var r=e.target.closest('[data-proj]');if(r)openProj(r.dataset.proj);});
+
+  document.getElementById('kbar').addEventListener('click',function(){document.getElementById('search').focus();});
+  document.getElementById('search').addEventListener('keydown',function(e){
+    if(e.key!=='Enter')return;var q=e.target.value.toLowerCase();
+    for(var k in projects){if(projects[k].n.toLowerCase().indexOf(q)>-1){openProj(k);return;}}
+    if(/inv|budget|fee/.test(q))go('invoices');else if(/dead|mile|date/.test(q))go('deadlines');else if(/doc|file/.test(q))go('docs');else if(q)go('projects');
+  });
+  document.addEventListener('keydown',function(e){if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.getElementById('search').focus();}});
+})();
+</script>
