@@ -2,7 +2,7 @@
 
 _Auto-generated 2026-09-18. This file is a pointer, not a source of truth._
 
-**Source of truth for this project: `~/Documents/Claude_Projects/base-ai/clients/regal`.**
+**Source of truth for this project: `~/Documents/Claude_Projects/BASE AI/clients/regal`.**
 
 Before doing any work here, read that room's `STATUS.md`, `FACTS.md`, and `QUESTIONS.md` first. This card only carries a snapshot so a cold open doesn't start from nothing.
 
